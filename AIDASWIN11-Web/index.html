@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="lt" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Pagrindinės SEO meta žymės -->
+  <title>AIDASWIN11 – Švarus Windows 11 Pro + Android (WSA & ADB) Generatorius</title>
+  <meta name="description" content="AIDASWIN11 – nemokamas PowerShell ir autounattend.xml generatorius, sukuriantis išvalytą Windows 11 Pro ISO be Microsoft šiukšlių, TPM 2.0 apribojimų ir su integruotu Android (WSA) bei .APK diegimu pele." />
+  <meta name="keywords" content="AIDASWIN11, Windows 11 Pro ISO, Windows 11 debloat, WSA Windows 11, Android ant Windows 11, autounattend.xml, TPM 2.0 bypass, PowerShell DISM, aidas.org.uk" />
+  <meta name="author" content="Aidas (aidas.org.uk)" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://win11.aidas.org.uk/" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <!-- OpenGraph (Facebook, Discord, LinkedIn, Messenger peržiūros kortelė) -->
+  <meta property="og:type" content="website" />
+  <meta property="og:site_name" content="AIDASWIN11" />
+  <meta property="og:locale" content="lt_LT" />
+  <meta property="og:url" content="https://win11.aidas.org.uk/" />
+  <meta property="og:title" content="AIDASWIN11 – Windows 11 Pro + Android (WSA) viename ISO" />
+  <meta property="og:description" content="Susikurkite švarų Windows 11 Pro atvaizdą be Microsoft paskyros ir TPM 2.0 reikalavimų, su integruotu Android posistemiu bei .APK programėlių diegimu dukart spustelėjus pele." />
+  <meta property="og:image" content="https://win11.aidas.org.uk/og-cover.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <!-- Twitter / X kortelė -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="https://win11.aidas.org.uk/" />
+  <meta name="twitter:title" content="AIDASWIN11 – Windows 11 Pro + Android (WSA) Generatorius" />
+  <meta name="twitter:description" content="Automatizuotas Windows 11 Pro ISO valymo ir Android (WSA + ADB) integravimo skriptas bei gidas." />
+  <meta name="twitter:image" content="https://win11.aidas.org.uk/og-cover.png" />
+
+  <!-- JSON-LD Struktūrizuoti duomenys (Schema.org SoftwareApplication + FAQPage) -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "AIDASWIN11 PowerShell ISO Builder",
+        "operatingSystem": "Windows 11",
+        "applicationCategory": "UtilitiesApplication",
+        "softwareVersion": "2026.1",
+        "url": "https://win11.aidas.org.uk/",
+        "author": {
+          "@type": "Person",
+          "name": "Aidas",
+          "url": "https://aidas.org.uk"
+        },
+        "description": "Automatizuotas PowerShell ir DISM skriptas, išvalantis Windows 11 Pro ISO nuo nereikalingų Microsoft programėlių, apeinantis TPM 2.0 bei Microsoft paskyros reikalavimus ir integruojantis Windows Subsystem for Android (WSA) su ADB .APK diegikliu.",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "EUR"
+        },
+        "featureList": [
+          "Windows 11 Pro bloatware šalinimas per DISM",
+          "TPM 2.0, Secure Boot, RAM ir Microsoft paskyros apėjimas (autounattend.xml)",
+          "Windows Subsystem for Android (WSA) integracija",
+          "Automatinis .APK diegimas dukart spustelėjus pele per ADB"
+        ]
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Kodėl būtina įjungti BIOS virtualizaciją ir kaip ją rasti?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Windows Subsystem for Android (WSA) veikia lengvoje Hyper-V virtualioje aplinkoje, todėl BIOS nustatymuose būtina įjungti Intel Virtualization Technology (VT-x) arba AMD SVM Mode."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Kodėl programoje Rufus būtina rinktis NTFS ir nuimti visas varneles?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Integruotas install.wim failas viršija 4 GB FAT32 ribą, todėl būtina NTFS failų sistema. Varneles būtina nuimti, kad Rufus nesugadintų integruoto autounattend.xml failo."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Kaip vėliau atnaujinti WSA versiją neprarandant jau įdiegtų Android programėlių?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Nešalinkite WSA per Windows nustatymus. Sustabdykite WSA, perrašykite naujus failus į C:\AndroidSetup ir perregistruokite paketą per PowerShell komanda Add-AppxPackage -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Register."
+            }
+          }
+        ]
+      }
+    ]
+  }
+  </script>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              500: '#0ea5e9',
+              600: '#0284c7',
+              accent: '#10b981'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-200 antialiased">
+
+  <!-- Navigacija -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/80 dark:bg-slate-950/80 border-b border-slate-200 dark:border-slate-800">
+    <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <span class="px-2.5 py-1 rounded-lg bg-sky-500/15 text-sky-500 font-bold tracking-wider text-sm border border-sky-500/30">
+          AIDASWIN11
+        </span>
+        <span class="text-sm text-slate-500 dark:text-slate-400 hidden sm:inline">Win11 Pro Clean + WSA + ADB</span>
+      </div>
+      <nav class="flex items-center gap-5 text-sm font-medium">
+        <a href="#funkcijos" class="hover:text-sky-500 transition">Privalumai</a>
+        <a href="#konfiguratorius" class="hover:text-emerald-500 transition">Generatorius</a>
+        <a href="#instrukcija" class="hover:text-sky-500 transition">Diegimas</a>
+        <a href="#duk" class="hover:text-amber-500 transition">DUK</a>
+        <a href="#video" class="hover:text-sky-500 transition">Video</a>
+        <button id="themeToggle" class="p-2 rounded-lg border border-slate-300 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-800 cursor-pointer" title="Keisti temą">
+          🌓
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Hero Sekcija -->
+  <section class="max-w-6xl mx-auto px-4 pt-16 pb-16 text-center">
+    <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-500 text-xs font-semibold border border-emerald-500/20 mb-6">
+      ● Paruošta 2026 • Be Microsoft šiukšlių • Su tiesioginiu .APK diegimu
+    </div>
+    <h1 class="text-4xl sm:text-6xl font-extrabold tracking-tight mb-6">
+      Windows 11 Pro + <span class="text-transparent bg-clip-text bg-gradient-to-r from-sky-400 to-emerald-400">Android (WSA)</span> viename ISO
+    </h1>
+    <p class="max-w-2xl mx-auto text-lg text-slate-600 dark:text-slate-400 mb-10">
+      <strong>AIDASWIN11</strong> – automatizuotas, išvalytas Windows 11 atvaizdas be privalomos Microsoft paskyros ir TPM 2.0 apribojimų, su integruotu Android posistemiu bei .APK programėlių diegimu dukart spustelėjus pele.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="#konfiguratorius" class="px-6 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-500/25 transition">
+        ⚙ Sukonfigūruoti ir atsisiųsti .PS1
+      </a>
+      <a href="#video" class="px-6 py-3.5 rounded-xl bg-slate-200 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 font-semibold transition">
+        ▶ Žiūrėti video instrukciją
+      </a>
+    </div>
+  </section>
+
+  <!-- Kas pakeista (Bento Tinklelis) -->
+  <section id="funkcijos" class="max-w-6xl mx-auto px-4 py-14 border-t border-slate-200 dark:border-slate-800">
+    <h2 class="text-2xl sm:text-3xl font-bold mb-8">Kas integruota į AIDASWIN11?</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+      <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-sky-500 font-bold text-lg mb-2">1. Išvalytas Bloatware</div>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Pašalintos nereikalingos Microsoft programos (Cortana, Teams, Bing News/Weather, Xbox priedai, Clipchamp, Solitaire), tačiau išsaugotas <strong>Microsoft Store</strong> ir sistemos stabilumas.
+        </p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-emerald-500 font-bold text-lg mb-2">2. Android + .APK pele</div>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Integruotas <strong>Windows Subsystem for Android (WSA)</strong> ir <strong>ADB</strong> įrankis. Bet kurį <code>.apk</code> failą galima įdiegti tiesiog dukart spustelėjus kairiuoju pelės klavišu.
+        </p>
+      </div>
+      <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <div class="text-amber-500 font-bold text-lg mb-2">3. Zero-OOBE & TPM Bypass</div>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          Integruotas <code>autounattend.xml</code> apeina TPM 2.0, Secure Boot, RAM ir Microsoft paskyros reikalavimus, automatiškai sukuria vietinę paskyrą ir nustato pasirinktas klaviatūras.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interaktyvus Skripto Konfigūratorius -->
+  <section id="konfiguratorius" class="max-w-6xl mx-auto px-4 py-14 border-t border-slate-200 dark:border-slate-800">
+    <div class="mb-8">
+      <h2 class="text-2xl sm:text-3xl font-bold">Interaktyvus PowerShell Generatorius</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+        Įveskite savo parametrus – skriptas akimirksniu prisitaikys ir bus paruoštas atsisiuntimui.
+      </p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 mb-6">
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Vietinės paskyros vardas</label>
+        <input type="text" id="cfgUser" value="Aidas" oninput="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-sky-500" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Slaptažodis (tuščias = be slaptažodžio)</label>
+        <input type="text" id="cfgPass" value="" placeholder="Palikite tuščią" oninput="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-sky-500" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Pradinio ISO failo kelias</label>
+        <input type="text" id="cfgIsoPath" value="D:\Windows11.iso" oninput="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm font-mono focus:outline-none focus:border-sky-500" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">AndroidPaketas aplanko kelias</label>
+        <input type="text" id="cfgAndroidPath" value="D:\AndroidPaketas" oninput="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm font-mono focus:outline-none focus:border-sky-500" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Klaviatūrų išdėstymas</label>
+        <select id="cfgKeyboard" onchange="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-sky-500">
+          <option value="0809:00000809;0427:00010427">Anglų (UK) + Lietuvių</option>
+          <option value="0409:00000409;0427:00010427">Anglų (US) + Lietuvių</option>
+          <option value="0427:00010427;0809:00000809">Lietuvių + Anglų (UK)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Laiko juosta</label>
+        <select id="cfgTimeZone" onchange="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-sky-500">
+          <option value="GMT Standard Time">Jungtinė Karalystė (GMT / London)</option>
+          <option value="FLE Standard Time">Lietuva (EET / Vilnius)</option>
+          <option value="W. Europe Standard Time">Vidurio Europa (CET / Berlin)</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Windows 11 EditionIndex</label>
+        <select id="cfgIndex" onchange="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-sky-500">
+          <option value="6">6 – Windows 11 Pro (standartinis ISO)</option>
+          <option value="1">1 – Windows 11 Home (arba 1 leidimo ISO)</option>
+          <option value="3">3 – Windows 11 Education</option>
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-2">Sąsajos kalba (UI Language)</label>
+        <select id="cfgLang" onchange="updateScript()" class="w-full px-3.5 py-2.5 rounded-xl bg-slate-100 dark:bg-slate-950 border border-slate-300 dark:border-slate-700 text-sm focus:outline-none focus:border-sky-500">
+          <option value="en-US">Anglų (en-US)</option>
+          <option value="lt-LT">Lietuvių (lt-LT)</option>
+        </select>
+      </div>
+
+      <div class="flex items-end">
+        <button onclick="downloadPs1Script()" class="w-full px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2 cursor-pointer">
+          ⬇ Atsisiųsti .PS1 failą
+        </button>
+      </div>
+    </div>
+
+    <!-- Peržiūros langas -->
+    <div class="rounded-2xl overflow-hidden border border-slate-300 dark:border-slate-800 bg-slate-900 text-slate-200">
+      <div class="px-4 py-2.5 bg-slate-800/80 border-b border-slate-700 flex items-center justify-between text-xs font-mono text-slate-400">
+        <span>Build-Win11-FullAndroid-Unattend.ps1 (Atnaujinta gyvai)</span>
+        <button onclick="copyPs1Script()" id="copyBtn" class="px-3 py-1 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 transition cursor-pointer">
+          📋 Kopijuoti kodą
+        </button>
+      </div>
+      <pre class="p-4 text-xs font-mono overflow-x-auto max-h-80 text-sky-300 leading-relaxed"><code id="scriptPreview"></code></pre>
+    </div>
+    <p id="downloadFeedback" class="mt-3 text-xs text-emerald-500 font-medium opacity-0 transition-opacity duration-300">
+      ✓ Asmeniškai pritaikytas Build-Win11-FullAndroid-Unattend.ps1 failas sėkmingai parsiųstas!
+    </p>
+  </section>
+
+  <!-- Žingsnis po žingsnio instrukcija -->
+  <section id="instrukcija" class="max-w-6xl mx-auto px-4 py-14 border-t border-slate-200 dark:border-slate-800">
+    <h2 class="text-2xl sm:text-3xl font-bold mb-8">Smulki naudojimo instrukcija</h2>
+    <div class="space-y-6">
+      <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <h3 class="font-bold text-lg text-sky-500 mb-2">1 žingsnis: USB atmintinės paruošimas su Rufus</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+          Pasirinkite <strong>GPT</strong> skaidinių schemą, <strong>UEFI</strong> sistemą ir būtinai <strong>NTFS</strong> failų sistemą (kadangi <code>install.wim</code> viršija 4 GB). Paspaudus START, iššokančiame lange <strong>nuimkite visas varneles</strong>, kad Rufus neperrašytų integruoto <code>autounattend.xml</code>.
+        </p>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <h3 class="font-bold text-lg text-sky-500 mb-2">2 žingsnis: BIOS ir Windows 11 diegimas</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400">
+          BIOS nustatymuose įjunkite procesoriaus virtualizaciją (<strong>Intel VT-x</strong> arba <strong>AMD-V</strong>). Paleidus kompiuterį iš USB, pasirinkite tik kietąjį diską – visa likusi sistema įsidiegs automatiškai.
+        </p>
+      </div>
+
+      <div class="p-6 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+        <h3 class="font-bold text-lg text-emerald-500 mb-2">3 žingsnis: Android (WSA) aktyvavimas pirmąją minutę</h3>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mb-3">
+          Atidarykite Start meniu → <strong>Windows Subsystem for Android Settings</strong> → <strong>Advanced settings</strong> ir įjunkite <strong>Developer mode</strong>. Diegiant pirmąjį <code>.apk</code> failą, pažymėkite <em>Always allow from this computer</em> ir paspauskite <strong>Allow</strong>.
+        </p>
+        <div class="bg-slate-950 text-emerald-400 p-3 rounded-lg font-mono text-xs overflow-x-auto">
+          Žurnalo patikra: C:\AndroidSetup\wsa_install.log | ADB prievadas: 127.0.0.1:58526
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Išskleidžiama DUK (FAQ) Sekcija -->
+  <section id="duk" class="max-w-6xl mx-auto px-4 py-14 border-t border-slate-200 dark:border-slate-800">
+    <div class="mb-8">
+      <h2 class="text-2xl sm:text-3xl font-bold">Dažniausiai užduodami klausimai (DUK)</h2>
+      <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+        Svarbiausi atsakymai apie BIOS virtualizaciją, Rufus NTFS nustatymus ir saugų WSA atnaujinimą.
+      </p>
+    </div>
+
+    <div class="space-y-4">
+      <details class="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 open:border-sky-500/60 transition">
+        <summary class="flex items-center justify-between p-6 font-bold text-base sm:text-lg cursor-pointer list-none">
+          <span>1. Kodėl būtina įjungti BIOS virtualizaciją ir kaip ją rasti?</span>
+          <span class="text-sky-500 text-xl font-mono transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-6 pb-6 text-sm text-slate-600 dark:text-slate-400 space-y-2 border-t border-slate-100 dark:border-slate-800/80 pt-4">
+          <p>
+            Nors <code>autounattend.xml</code> apeina TPM 2.0 ir Secure Boot patikras, pats <strong>Windows Subsystem for Android (WSA)</strong> veikia lengvoje „Hyper-V“ virtualioje aplinkoje. Be procesoriaus aparatūrinės virtualizacijos Android branduolys nepasileis.
+          </p>
+          <p>
+            <strong>Kaip įjungti:</strong> Įjungdami kompiuterį spauskite <code>Del</code>, <code>F2</code> arba <code>F10</code>, eikite į <em>Advanced / CPU Configuration</em> skiltį ir nustatykite <strong>Intel Virtualization Technology (VT-x)</strong> arba <strong>AMD SVM Mode</strong> į <strong>Enabled</strong>.
+          </p>
+        </div>
+      </details>
+
+      <details class="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 open:border-amber-500/60 transition">
+        <summary class="flex items-center justify-between p-6 font-bold text-base sm:text-lg cursor-pointer list-none">
+          <span>2. Kodėl programoje Rufus būtina rinktis NTFS ir nuimti visas varneles?</span>
+          <span class="text-amber-500 text-xl font-mono transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-6 pb-6 text-sm text-slate-600 dark:text-slate-400 space-y-2 border-t border-slate-100 dark:border-slate-800/80 pt-4">
+          <p>
+            <strong>Dėl NTFS:</strong> Senesnė FAT32 failų sistema nepalaiko didesnių nei 4 GB failų. Kadangi į ISO integruotas WSA paketas ir ADB, <code>install.wim</code> failas viršija 4 GB ribą – pasirinkus NTFS, Rufus automatiškai prideda <em>UEFI:NTFS</em> paleidiklį, todėl USB be problemų pasileidžia šiuolaikiniuose kompiuteriuose.
+          </p>
+          <p>
+            <strong>Dėl varnelių nuėmimo:</strong> Paspaudus START, Rufus iššokančiame lange siūlo sukurti savo <code>autounattend.xml</code>. Jei paliksite varneles, Rufus perrašys jūsų sugeneruotą AIDASWIN11 konfigūraciją (kurioje jau yra Win 11 Pro raktas, vartotojas ir klaviatūros).
+          </p>
+        </div>
+      </details>
+
+      <details class="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 open:border-emerald-500/60 transition">
+        <summary class="flex items-center justify-between p-6 font-bold text-base sm:text-lg cursor-pointer list-none">
+          <span>3. Kaip vėliau atnaujinti WSA versiją neprarandant jau įdiegtų Android programėlių?</span>
+          <span class="text-emerald-500 text-xl font-mono transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-6 pb-6 text-sm text-slate-600 dark:text-slate-400 space-y-3 border-t border-slate-100 dark:border-slate-800/80 pt-4">
+          <p>
+            <strong>Niekada nešalinkite WSA per Windows nustatymus (Uninstall)</strong>, nes tai ištrins virtualų diską <code>userdata.vhdx</code> su visomis programėlėmis. Vietoj to atlikite atnaujinimą ant viršaus:
+          </p>
+          <ol class="list-decimal list-inside space-y-1">
+            <li>Išjunkite WSA per nustatymus (<em>Turn off</em>) arba komanda <code>WsaClient.exe /shutdown</code>.</li>
+            <li>Išpakuokite naują to paties kūrėjo (pvz., <em>MustardChef WSABuilds</em>) archyvą tiesiai į <code>C:\AndroidSetup</code> ir perrašykite senus failus.</li>
+            <li>Paleiskite PowerShell kaip administratorius ir įvykdykite perregistravimą:</li>
+          </ol>
+          <div class="bg-slate-950 text-emerald-400 p-3 rounded-lg font-mono text-xs overflow-x-auto">
+            Add-AppxPackage -ForceApplicationShutdown -ForceUpdateFromAnyVersion -Register "C:\AndroidSetup\AppxManifest.xml"
+          </div>
+        </div>
+      </details>
+
+      <details class="group rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 open:border-sky-500/60 transition">
+        <summary class="flex items-center justify-between p-6 font-bold text-base sm:text-lg cursor-pointer list-none">
+          <span>4. Ką daryti, jei dukart spustelėjus .APK failą ADB rašo „cannot connect to 127.0.0.1:58526“?</span>
+          <span class="text-sky-500 text-xl font-mono transition-transform duration-200 group-open:rotate-45">+</span>
+        </summary>
+        <div class="px-6 pb-6 text-sm text-slate-600 dark:text-slate-400 space-y-2 border-t border-slate-100 dark:border-slate-800/80 pt-4">
+          <p>
+            Tai nutinka tik tada, kai WSA nustatymuose dar nebuvo įjungtas <strong>Developer mode</strong> arba pati WSA posistemė dar nespėjo pilnai užsikrauti. Atidarykite <strong>Windows Subsystem for Android Settings → Advanced settings</strong>, įjunkite <strong>Developer mode</strong>, spustelėkite <em>Manage developer settings</em> ir pakartokite <code>.apk</code> paleidimą.
+          </p>
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <!-- Prisitaikantis YouTube Video Gidas ir Visų Nuorodų Sąrašas -->
+  <section id="video" class="max-w-6xl mx-auto px-4 py-14 border-t border-slate-200 dark:border-slate-800">
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+      <div>
+        <h2 class="text-2xl sm:text-3xl font-bold">Video gidas ir visos projekto nuorodos</h2>
+        <p class="text-sm text-slate-600 dark:text-slate-400 mt-1">
+          Žiūrėkite visą paruošimo eigą vaizdo įraše ir atsisiųskite reikiamus pagalbinius įrankius iš oficialių šaltinių.
+        </p>
+      </div>
+
+      <!-- Greitas YouTube nuorodos perjungiklis testavimui -->
+      <div class="flex items-center gap-2 w-full md:w-auto">
+        <input type="text" id="ytUrlInput" placeholder="Įklijuokite YouTube nuorodą arba ID..." class="w-full md:w-72 px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 text-xs focus:outline-none focus:border-sky-500" />
+        <button onclick="loadCustomYoutube()" class="px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold whitespace-nowrap cursor-pointer transition">
+          Įkelti video
+        </button>
+      </div>
+    </div>
+
+    <!-- Prisitaikantis (16:9 Responsive) YouTube rėmelis -->
+    <div class="relative w-full overflow-hidden rounded-2xl border border-slate-300 dark:border-slate-800 bg-black shadow-xl mb-10" style="padding-top: 56.25%;">
+      <iframe
+        id="youtubePlayer"
+        class="absolute top-0 left-0 w-full h-full"
+        src=""
+        title="AIDASWIN11 Video Gidas"
+        frameborder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+        referrerpolicy="strict-origin-when-cross-origin"
+        allowfullscreen>
+      </iframe>
+    </div>
+
+    <!-- Visų oficialių nuorodų sąrašas apačioje -->
+    <div class="rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6">
+      <h3 class="text-lg font-bold mb-4 flex items-center gap-2">
+        🔗 Visos reikalingos nuorodos (Oficialūs atsisiuntimo šaltiniai)
+      </h3>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <a href="https://www.microsoft.com/software-download/windows11" target="_blank" rel="noopener noreferrer" class="group p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-sky-500 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-sm group-hover:text-sky-500 transition">1. Windows 11 ISO (x64) ↗</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Oficialus originalus Windows 11 diegimo atvaizdas iš Microsoft.</p>
+          </div>
+          <span class="text-[11px] font-mono text-sky-500 mt-3">microsoft.com/software-download</span>
+        </a>
+
+        <a href="https://learn.microsoft.com/windows-hardware/get-started/adk-install" target="_blank" rel="noopener noreferrer" class="group p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-sky-500 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-sm group-hover:text-sky-500 transition">2. Windows ADK (oscdimg.exe) ↗</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Diegiant pasirinkite tik „Deployment Tools“ naujam ISO supakuoti.</p>
+          </div>
+          <span class="text-[11px] font-mono text-sky-500 mt-3">learn.microsoft.com/windows-hardware</span>
+        </a>
+
+        <a href="https://github.com/MustardChef/WSABuilds" target="_blank" rel="noopener noreferrer" class="group p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-sm group-hover:text-emerald-500 transition">3. WSA Builds (Android x64) ↗</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Windows Subsystem for Android paketas su Install.ps1 failu.</p>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-500 mt-3">github.com/MustardChef/WSABuilds</span>
+        </a>
+
+        <a href="https://developer.android.com/tools/releases/platform-tools" target="_blank" rel="noopener noreferrer" class="group p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-sm group-hover:text-emerald-500 transition">4. Android Platform-Tools (ADB) ↗</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Reikalingas adb.exe, kad .apk failai įsidiegtų dukart spustelėjus pele.</p>
+          </div>
+          <span class="text-[11px] font-mono text-emerald-500 mt-3">developer.android.com/tools</span>
+        </a>
+
+        <a href="https://rufus.ie/" target="_blank" rel="noopener noreferrer" class="group p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-amber-500 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-sm group-hover:text-amber-500 transition">5. Rufus (USB įrašymui) ↗</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Įrašykite paruoštą ISO pasirinkę GPT + NTFS ir nuėmę visas varneles.</p>
+          </div>
+          <span class="text-[11px] font-mono text-amber-500 mt-3">rufus.ie</span>
+        </a>
+
+        <a href="https://www.ventoy.net/" target="_blank" rel="noopener noreferrer" class="group p-4 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 hover:border-amber-500 transition flex flex-col justify-between">
+          <div>
+            <div class="font-semibold text-sm group-hover:text-amber-500 transition">6. Ventoy (Alternatyva USB) ↗</div>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Leidžia tiesiog nukopijuoti ISO failą į USB atmintinę be perrašymo.</p>
+          </div>
+          <span class="text-[11px] font-mono text-amber-500 mt-3">ventoy.net</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Poraštė -->
+  <footer class="border-t border-slate-200 dark:border-slate-800 py-8 text-center text-sm text-slate-500">
+    <p>© 2026 <strong>AIDASWIN11</strong> • Sukurta ir sukonfigūruota Aido • <a href="https://win11.aidas.org.uk" class="text-sky-500 hover:underline">win11.aidas.org.uk</a></p>
+  </footer>
+
+  <script>
+    // =========================================================================
+    // ČIA ĮRAŠYK SAVO YOUTUBE VAIZDO ĮRAŠO ID (pvz., iš https://youtu.be/XXXX)
+    // =========================================================================
+    const DEFAULT_YOUTUBE_ID = "M7lc1UVf-VE";
+
+    function extractYoutubeId(input) {
+      const trimmed = input.trim();
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+      const match = trimmed.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+      return match ? match[1] : null;
+    }
+
+    function setYoutubeVideo(videoId) {
+      const player = document.getElementById('youtubePlayer');
+      player.src = `https://www.youtube-nocookie.com/embed/${videoId}?rel=0`;
+    }
+
+    function loadCustomYoutube() {
+      const inputVal = document.getElementById('ytUrlInput').value;
+      const parsedId = extractYoutubeId(inputVal);
+      if (parsedId) {
+        setYoutubeVideo(parsedId);
+      } else {
+        alert("Neteisinga YouTube nuoroda arba vaizdo įrašo ID.");
+      }
+    }
+
+    // Temos perjungimas
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    function buildScriptText() {
+      const user = document.getElementById('cfgUser').value.trim() || 'User';
+      const pass = document.getElementById('cfgPass').value;
+      const isoPath = document.getElementById('cfgIsoPath').value.trim() || 'D:\\Windows11.iso';
+      const androidPath = document.getElementById('cfgAndroidPath').value.trim() || 'D:\\AndroidPaketas';
+      const keyboard = document.getElementById('cfgKeyboard').value;
+      const timeZone = document.getElementById('cfgTimeZone').value;
+      const editionIndex = document.getElementById('cfgIndex').value;
+      const uiLang = document.getElementById('cfgLang').value;
+
+      return `# ==============================================================================
+# AIDASWIN11 - GALUTINIS WINDOWS 11 PRO + WSA + ADB + AUTOUNATTEND.XML SKRIPTAS
+# Apeina TPM 2.0 / Secure Boot / RAM ir Microsoft paskyros reikalavimus
+# Paleisti tik su Administratoriaus teisemis!
+# ==============================================================================
+
+# --- 1. NUSTATYMAI ---
+$SourceISO      = "${isoPath}"
+$AndroidFolder  = "${androidPath}"
+$WorkDir        = "C:\\Win11Build"
+$OutputISO      = "C:\\Win11_Clean_Android.iso"
+$EditionIndex   = ${editionIndex}
+
+# Vartotojo ir regiono nustatymai
+$LocalUserName  = "${user}"
+$LocalPassword  = "${pass}"
+$UiLanguage     = "${uiLang}"
+$InputLocale    = "${keyboard}"
+$TimeZone       = "${timeZone}"
+
+# Kelias iki oscdimg.exe iš Windows ADK (Deployment Tools)
+$OscdimgPath    = "\${env:ProgramFiles(x86)}\\Windows Kits\\10\\Assessment and Deployment Kit\\Deployment Tools\\amd64\\Oscdimg\\oscdimg.exe"
+
+# --- 2. PRADINIAI PATIKRINIMAI ---
+if (-not ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
+    Write-Error "KLAIDA: Paleiskite PowerShell kaip Administratorius!"
+    exit
+}
+if (-not (Test-Path $SourceISO)) { Write-Error "Nerastas ISO failas: $SourceISO"; exit }
+if (-not (Test-Path "$AndroidFolder\\Install.ps1")) { Write-Error "Nerastas WSA Install.ps1 aplanke: $AndroidFolder"; exit }
+if (-not (Test-Path "$AndroidFolder\\ADB\\adb.exe")) { Write-Error "Nerastas adb.exe aplanke: $AndroidFolder\\ADB"; exit }
+if (-not (Test-Path $OscdimgPath)) { Write-Error "Nerastas oscdimg.exe! Įdiekite Windows ADK (Deployment Tools)."; exit }
+
+$IsoExtract = "$WorkDir\\ISO"
+$MountDir   = "$WorkDir\\Mount"
+
+Write-Host "[1/8] Ruošiami darbiniai aplankai..." -ForegroundColor Cyan
+Remove-Item -Path $WorkDir -Recurse -Force -ErrorAction SilentlyContinue
+New-Item -ItemType Directory -Path $IsoExtract, $MountDir -Force | Out-Null
+
+# --- 3. ISO IŠPAKAVIMAS ---
+Write-Host "[2/8] Prijungiamas ir išpakuojamas Windows 11 ISO..." -ForegroundColor Cyan
+$MountResult = Mount-DiskImage -ImagePath $SourceISO -PassThru
+$DriveLetter = ($MountResult | Get-Volume).DriveLetter + ":\\"
+Copy-Item -Path "$DriveLetter*" -Destination $IsoExtract -Recurse -Force
+Dismount-DiskImage -ImagePath $SourceISO | Out-Null
+
+Get-ChildItem -Path $IsoExtract -Recurse | ForEach-Object { $_.Attributes = 'Normal' }
+
+$InstallWim = "$IsoExtract\\sources\\install.wim"
+$InstallEsd = "$IsoExtract\\sources\\install.esd"
+
+if ((Test-Path $InstallEsd) -and (-not (Test-Path $InstallWim))) {
+    Write-Host "Konvertuojamas install.esd į install.wim (tai užtruks kelias minutes)..." -ForegroundColor Yellow
+    Export-WindowsImage -SourceImagePath $InstallEsd -SourceIndex $EditionIndex -DestinationImagePath $InstallWim -CompressionType Max -CheckIntegrity
+    Remove-Item -Path $InstallEsd -Force
+    $EditionIndex = 1
+}
+
+# --- 4. INSTALL.WIM VALYMAS ---
+Write-Host "[3/8] Prijungiamas Windows atvaizdas (install.wim)..." -ForegroundColor Cyan
+Mount-WindowsImage -ImagePath $InstallWim -Index $EditionIndex -Path $MountDir
+
+Write-Host "[4/8] Šalinamos nereikalingos Microsoft programėlės (Bloatware)..." -ForegroundColor Cyan
+$BloatwareList = @(
+    "Clipchamp.Clipchamp",
+    "Microsoft.549981C3F5F10",
+    "Microsoft.BingNews",
+    "Microsoft.BingWeather",
+    "Microsoft.GamingApp",
+    "Microsoft.GetHelp",
+    "Microsoft.Getstarted",
+    "Microsoft.MicrosoftOfficeHub",
+    "Microsoft.MicrosoftSolitaireCollection",
+    "Microsoft.People",
+    "Microsoft.PowerAutomateDesktop",
+    "Microsoft.Todos",
+    "Microsoft.WindowsFeedbackHub",
+    "Microsoft.WindowsMaps",
+    "Microsoft.WindowsSoundRecorder",
+    "Microsoft.Xbox.TCUI",
+    "Microsoft.XboxGameOverlay",
+    "Microsoft.XboxGamingOverlay",
+    "Microsoft.XboxIdentityProvider",
+    "Microsoft.XboxSpeechToTextOverlay",
+    "Microsoft.YourPhone",
+    "Microsoft.ZuneMusic",
+    "Microsoft.ZuneVideo",
+    "MicrosoftCorporationII.QuickAssist",
+    "MicrosoftTeams"
+)
+
+$ProvisionedPackages = Get-AppxProvisionedPackage -Path $MountDir
+foreach ($App in $BloatwareList) {
+    $Matched = $ProvisionedPackages | Where-Object { $_.DisplayName -like "*$App*" }
+    foreach ($Pkg in $Matched) {
+        Write-Host "  -> Trinama: $($Pkg.DisplayName)" -ForegroundColor DarkGray
+        Remove-AppxProvisionedPackage -Path $MountDir -PackageName $Pkg.PackageName | Out-Null
+    }
+}
+
+Write-Host "Įjungiama Virtual Machine Platform funkcija (būtina WSA)..." -ForegroundColor Green
+Enable-WindowsOptionalFeature -Path $MountDir -FeatureName "VirtualMachinePlatform" -All -NoRestart | Out-Null
+
+# --- 5. WSA IR ADB KOPIJAVIMAS Į $OEM$ ---
+Write-Host "[5/8] Kopijuojamas WSA ir ADB paketas į ISO struktūrą..." -ForegroundColor Cyan
+$OemAndroidDir = "$IsoExtract\\sources\\\\`$OEM\\`$\\$1\\AndroidSetup"
+$OemScriptsDir = "$IsoExtract\\sources\\\\`$OEM\\`$\\\\`$\\`$\\Setup\\Scripts"
+New-Item -ItemType Directory -Path $OemAndroidDir, $OemScriptsDir -Force | Out-Null
+
+Copy-Item -Path "$AndroidFolder\\*" -Destination $OemAndroidDir -Recurse -Force
+
+$CopiedInstallPs1 = "$OemAndroidDir\\Install.ps1"
+$Ps1Content = Get-Content -Path $CopiedInstallPs1
+$Ps1Content = $Ps1Content -replace '^\\s*(Read-Host|pause)', '# $1'
+Set-Content -Path $CopiedInstallPs1 -Value $Ps1Content -Encoding UTF8
+
+# --- 6. .APK DOUBLE-CLICK DIEGIKLIO IR SETUPCOMPLETE.CMD SUKŪRIMAS ---
+Write-Host "[6/8] Konfigūruojamas .apk failų diegimas dukart spustelėjus pele..." -ForegroundColor Cyan
+
+$InstallApkCmd = @"
+@echo off
+title Diegiama Android programėlė (.APK)...
+echo Jungiamasi prie Windows Subsystem for Android (WSA)...
+
+start "" "C:\\Users\\%USERNAME%\\AppData\\Local\\Microsoft\\WindowsApps\\WsaClient.exe" /launch wsa://system
+timeout /t 4 /nobreak >nul
+
+"C:\\AndroidSetup\\ADB\\adb.exe" connect 127.0.0.1:58526
+
+echo Diegiamas failas: "%~1"
+"C:\\AndroidSetup\\ADB\\adb.exe" -s 127.0.0.1:58526 install -r "%~1"
+
+if %ERRORLEVEL% EQU 0 (
+    echo.
+    echo [SĖKMĖ] Programėlė sėkmingai įdiegta! Ją rasite Windows Start meniu.
+) else (
+    echo.
+    echo [KLAIDA] Nepavyko įdiegti. Patikrinkite, ar WSA nustatymuose įjungtas "Developer mode".
+)
+pause
+"@
+Set-Content -Path "$OemAndroidDir\\ADB\\install_apk.cmd" -Value $InstallApkCmd -Encoding ASCII
+
+$SetupCompleteCmd = @"
+@echo off
+reg add "HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\AppModelUnlock" /t REG_DWORD /f /v "AllowDevelopmentWithoutDevLicense" /d "1"
+
+if exist "C:\\AndroidSetup\\Install.ps1" (
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "C:\\AndroidSetup\\Install.ps1" > "C:\\AndroidSetup\\wsa_install.log" 2>&1
+)
+
+reg add "HKCR\\.apk" /ve /d "AndroidAPKFile" /f
+reg add "HKCR\\AndroidAPKFile" /ve /d "Android Application Package" /f
+reg add "HKCR\\AndroidAPKFile\\DefaultIcon" /ve /d "C:\\AndroidSetup\\ADB\\adb.exe,0" /f
+reg add "HKCR\\AndroidAPKFile\\shell\\open\\command" /ve /d "\\"C:\\AndroidSetup\\ADB\\install_apk.cmd\\" \\"%%1\\"" /f
+
+exit /b 0
+"@
+Set-Content -Path "$OemScriptsDir\\SetupComplete.cmd" -Value $SetupCompleteCmd -Encoding ASCII
+
+# --- 7. PILNAS AUTOUNATTEND.XML GENERAVIMAS ---
+Write-Host "[7/8] Kuriamas visiškai automatizuotas autounattend.xml..." -ForegroundColor Cyan
+
+$AutounattendXml = @"
+<?xml version="1.0" encoding="utf-8"?>
+<unattend xmlns="urn:schemas-microsoft-com:unattend">
+    <settings pass="windowsPE">
+        <component name="Microsoft-Windows-International-Core-WinPE" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <SetupUILanguage>
+                <UILanguage>$UiLanguage</UILanguage>
+            </SetupUILanguage>
+            <InputLocale>$InputLocale</InputLocale>
+            <SystemLocale>$UiLanguage</SystemLocale>
+            <UILanguage>$UiLanguage</UILanguage>
+            <UserLocale>$UiLanguage</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <UserData>
+                <ProductKey>
+                    <Key>VK7JG-NPHTM-C97JM-9MPGT-3V66T</Key>
+                    <WillShowUI>OnError</WillShowUI>
+                </ProductKey>
+                <AcceptEula>true</AcceptEula>
+                <FullName>$LocalUserName</FullName>
+                <Organization>Personal</Organization>
+            </UserData>
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassTPMCheck /t REG_DWORD /d 1 /f</Path>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>2</Order>
+                    <Path>reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassSecureBootCheck /t REG_DWORD /d 1 /f</Path>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>3</Order>
+                    <Path>reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassRAMCheck /t REG_DWORD /d 1 /f</Path>
+                </RunSynchronousCommand>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>4</Order>
+                    <Path>reg add HKLM\\SYSTEM\\Setup\\LabConfig /v BypassCPUCheck /t REG_DWORD /d 1 /f</Path>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
+    </settings>
+
+    <settings pass="specialize">
+        <component name="Microsoft-Windows-Deployment" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <RunSynchronous>
+                <RunSynchronousCommand wcm:action="add">
+                    <Order>1</Order>
+                    <Path>reg add HKLM\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\OOBE /v BypassNRO /t REG_DWORD /d 1 /f</Path>
+                </RunSynchronousCommand>
+            </RunSynchronous>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <TimeZone>$TimeZone</TimeZone>
+        </component>
+    </settings>
+
+    <settings pass="oobeSystem">
+        <component name="Microsoft-Windows-International-Core" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <InputLocale>$InputLocale</InputLocale>
+            <SystemLocale>$UiLanguage</SystemLocale>
+            <UILanguage>$UiLanguage</UILanguage>
+            <UserLocale>$UiLanguage</UserLocale>
+        </component>
+        <component name="Microsoft-Windows-Shell-Setup" processorArchitecture="amd64" publicKeyToken="31bf3856ad364e35" language="neutral" versionScope="nonSxS" xmlns:wcm="http://schemas.microsoft.com/WMIConfig/2002/State" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+            <OOBE>
+                <HideEULAPage>true</HideEULAPage>
+                <HideOEMRegistrationScreen>true</HideOEMRegistrationScreen>
+                <HideOnlineAccountScreens>true</HideOnlineAccountScreens>
+                <HideWirelessSetupInOOBE>true</HideWirelessSetupInOOBE>
+                <NetworkLocation>Work</NetworkLocation>
+                <ProtectYourPC>3</ProtectYourPC>
+                <SkipMachineOOBE>true</SkipMachineOOBE>
+                <SkipUserOOBE>true</SkipUserOOBE>
+            </OOBE>
+            <UserAccounts>
+                <LocalAccounts>
+                    <LocalAccount wcm:action="add">
+                        <Password>
+                            <Value>$LocalPassword</Value>
+                            <PlainText>true</PlainText>
+                        </Password>
+                        <Description>Vietinis administratorius</Description>
+                        <DisplayName>$LocalUserName</DisplayName>
+                        <Group>Administrators</Group>
+                        <Name>$LocalUserName</Name>
+                    </LocalAccount>
+                </LocalAccounts>
+            </UserAccounts>
+            <AutoLogon>
+                <Password>
+                    <Value>$LocalPassword</Value>
+                    <PlainText>true</PlainText>
+                </Password>
+                <Enabled>true</Enabled>
+                <LogonCount>1</LogonCount>
+                <Username>$LocalUserName</Username>
+            </AutoLogon>
+        </component>
+    </settings>
+</unattend>
+"@
+Set-Content -Path "$IsoExtract\\autounattend.xml" -Value $AutounattendXml -Encoding UTF8
+
+Write-Host "Išsaugomi pakeitimai į install.wim (gali užtrukti 3-5 min.)..." -ForegroundColor Yellow
+Dismount-WindowsImage -Path $MountDir -Save
+
+# --- 8. GALUTINIO BOOTABLE ISO SUKŪRIMAS ---
+Write-Host "[8/8] Kuriamas galutinis paleidžiamas ISO failas: $OutputISO" -ForegroundColor Cyan
+$BootData = "2#p0,e,b\\`"$IsoExtract\\boot\\etfsboot.com\\`"#pEF,e,b\\`"$IsoExtract\\efi\\microsoft\\boot\\efisys.bin\\`""
+& $OscdimgPath -m -o -u2 -udfver102 -bootdata:$BootData "$IsoExtract" "$OutputISO"
+
+Write-Host "==========================================================" -ForegroundColor Green
+Write-Host "VISKAS PARUOŠTA! Galutinis ISO: $OutputISO" -ForegroundColor Green
+Write-Host "==========================================================" -ForegroundColor Green`;
+    }
+
+    function updateScript() {
+      document.getElementById('scriptPreview').textContent = buildScriptText();
+    }
+
+    function downloadPs1Script() {
+      const scriptContent = buildScriptText();
+      const bom = new Uint8Array([0xEF, 0xBB, 0xBF]);
+      const blob = new Blob([bom, scriptContent], { type: 'application/octet-stream;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'Build-Win11-FullAndroid-Unattend.ps1';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      const feedback = document.getElementById('downloadFeedback');
+      feedback.classList.remove('opacity-0');
+      setTimeout(() => feedback.classList.add('opacity-0'), 4000);
+    }
+
+    function copyPs1Script() {
+      navigator.clipboard.writeText(buildScriptText()).then(() => {
+        const btn = document.getElementById('copyBtn');
+        const originalText = btn.textContent;
+        btn.textContent = '✓ Nukopijuota!';
+        btn.classList.add('border-emerald-500', 'text-emerald-500');
+        setTimeout(() => {
+          btn.textContent = originalText;
+          btn.classList.remove('border-emerald-500', 'text-emerald-500');
+        }, 2500);
+      });
+    }
+
+    // Inicializuojame skriptą ir numatytąjį YouTube grotuvą
+    updateScript();
+    setYoutubeVideo(DEFAULT_YOUTUBE_ID);
+  </script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://win11.aidas.org.uk/sitemap.xml
